@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Map with GeoJSON Data</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 600px; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">This is a map will show all of the Chick-Fil-A's you have been to.</h1>
+    <div>
+        <input type="file" id="fileToUpload" />
+        <button onclick="uploadMedia()"> upload</button>
+    </div>
+    <script src="https://sdk.amazonaws.com/js/aws-sdk-2.726.0.min.js"></script>
+    <script src='main.js'></script>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map').setView([33.51165169103611, -81.71391500000034], 8);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    var geoJsonData = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {
+                    "type": "Polygon",
+                    "info": "This is a polygon feature."
+                },
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [-83.34584109561524, 34.7445320680734],
+                            [-81.8280659511642, 33.21179803651732],
+                            [-79.67397210941674, 34.80769504752196],
+                            [-83.34584109561524, 34.7445320680734]
+                        ]
+                    ]
+                }
+            },
+            {
+                "type": "Feature",
+                "properties": {
+                    "type": "Point",
+                    "info": "This is a point feature."
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-81.7207, 33.5486]
+                }
+            }
+            // Add more features here
+
+        ]
+    };
+
+    L.geoJSON(geoJsonData, {
+        onEachFeature: function(feature, layer) {
+            if (feature.properties && feature.properties.type === 'Point') {
+                layer.on('click', function () {
+                    document.getElementById('info').innerHTML = '<img src="Tigerpaw.png" alt="Tiger Paw" />';
+                });
+            }
+        }
+    }).addTo(map);
+</script>
+<div id="info"></div>
+
+</body>
+</html>
