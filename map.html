@@ -1,598 +1,194 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Map with GeoJSON Data</title>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chick-fil-A Tracker</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
     <style>
-        #map { height: 600px; }
+        body {
+            font-family: Calibri, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+
+        #map-container {
+            margin-top: 50px;
+            position: relative;
+        }
+
+        #map {
+            height: 500px;
+            margin-bottom: 20px;
+        }
+
+        .search-container {
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .search-container input[type="text"] {
+            padding: 8px;
+            width: 400px;
+            font-size: 16px;
+        }
+
+        .search-results {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 100%;
+            display: none;
+            z-index: 999;
+        }
+
+        .search-results-item {
+            cursor: pointer;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .search-results-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+
+        .visited {
+            color: green;
+            margin-left: 5px;
+        }
+
+        #south-carolina {
+            fill: transparent;
+            stroke: black;
+            stroke-width: 2;
+        }
+
+        path:not(#south-carolina) {
+            fill: red;
+        }
+
+        h1 {
+            font-size: 60px;
+            text-align: center;
+            color: red;
+            margin-top: 20px;
+            text-transform: none;
+            font-family: Chicken-fil-a;
+            border: 2px solid white;
+            padding: 10px;
+        }
+
+        .counter {
+            font-size: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
+    <h1>Chick-fil-A Tracker</h1>
+    <div class="counter">Visited Chick-fil-A Locations: <span id="visitedCounter">0</span></div>
 
-<div id="map"></div>
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search Chick-fil-A restaurants in South Carolina...">
+        <div class="search-results" id="searchResults"></div>
+    </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-<script>
-    var map = L.map('map').setView([33.51165169103611, -81.71391500000034], 8);
+    <div id="map-container">
+        <div id="map"></div>
+    </div>
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([33.8361, -81.1637], 7); // Centered at South Carolina
+        var visitedCounter = document.getElementById('visitedCounter');
+        var counter = 0;
 
-    var geoJsonData = {
-        "type": "FeatureCollection",
-        "features": [{
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-83.34584109561524, 34.7445320680734],
-                            [-81.8280659511642, 33.21179803651732],
-                            [-79.67397210941674, 34.80769504752196],
-                            [-83.34584109561524, 34.7445320680734]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-81.81535798438657, 33.22774475049947],
-                            [-81.0655216928233, 32.082786399437424],
-                            [-79.6549078287622, 34.80247849816875],
-                            [-81.81535798438657, 33.22774475049947]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-79.65490633863233, 34.79726161025904],
-                            [-80.51267980050332, 33.116020844245284],
-                            [-78.57444002064857, 33.88437360267582],
-                            [-79.65490633863233, 34.79726161025904]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-81.0528124191462, 32.09355514383758],
-                            [-80.87487284797469, 31.996581384917533],
-                            [-80.50632671479543, 33.147950266175854],
-                            [-81.0528124191462, 32.09355514383758]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-80.87487318608726, 32.00197151082891],
-                            [-79.75641684000203, 32.8334511514616],
-                            [-80.49997116368998, 33.13730820889819],
-                            [-80.87487318608726, 32.00197151082891]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-79.73099744858412, 32.83879065303937],
-                            [-79.19720544504027, 33.15857530963255],
-                            [-80.48726166472917, 33.13730807236023],
-                            [-79.73099744858412, 32.83879065303937]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-79.19720575497404, 33.16389520216484],
-                            [-78.5617264806817, 33.86326919355808],
-                            [-80.43642446112162, 33.14794953103363],
-                            [-79.19720575497404, 33.16389520216484]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-83.33315344610354, 34.744540856430234],
-                            [-80.20781688800102, 34.79196541529443],
-                            [-83.0981483343069, 34.999858182054936],
-                            [-83.33315344610354, 34.744540856430234]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-83.07903777452283, 35.00501176610382],
-                            [-80.79239870857892, 34.83886589527397],
-                            [-80.77970341022659, 34.93786600120309],
-                            [-83.07903777452283, 35.00501176610382]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-82.39305853436548, 35.217886133837524],
-                            [-83.04718184953812, 35.015326136994844],
-                            [-81.97410605043365, 34.98458297042333],
-                            [-82.39305853436548, 35.217886133837524]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-82.31057953710322, 35.186896617143574],
-                            [-81.98045729961682, 34.979373659692],
-                            [-81.04020032403537, 34.953477763535304],
-                            [-81.04021356143674, 35.15107631224804],
-                            [-82.31057953710322, 35.186896617143574]
-                        ]
-                    ]
-                }
-            },
-            {
-                "type": "Feature",
-                "properties": {},
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [
-                        [
-                            [-80.93855399298194, 35.1043309372931],
-                            [-81.16091973206085, 34.97428759712659],
-                            [-80.79241075020974, 34.94828147257972],
-                            [-80.93855399298194, 35.1043309372931]
-                        ]
-                    ]
-                }
-            },
-            {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.7207, 33.5486]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.6523, 34.5199]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.6276, 34.5019]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.9952, 32.8418]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.2075, 34.1245]
-        }
-    },
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
 
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.7207, 33.5486]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.6523, 34.5199]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.6276, 34.5019]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.9952, 32.8418]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.2075, 34.1245]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.9338, 35.0322]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.6935, 32.4279]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.2354, 32.2354]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.4411, 34.6814]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0021, 34.9248]
-        }
-    },
+        // Define South Carolina boundaries
+        var southCarolinaBounds = [
+            [32.0346, -83.3533], // Southwest
+            [35.2154, -78.4993]  // Northeast
+        ];
 
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.3148, 34.2276]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0178, 34.6891]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.5708, 34.7559]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0078, 33.9619]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.9316, 34.8965]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.116, 34.0895]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.4846, 34.9508]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.8254, 33.6655]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0581, 34.1667]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.2193, 34.9035]
-        }
-    },
+        L.rectangle(southCarolinaBounds, {id: 'south-carolina'}).addTo(map);
 
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.2841, 34.6884]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0202, 33.9562]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0233, 34.0501]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0665, 33.8303]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.7652, 33.5579]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.8988, 34.1481]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.0101, 32.8258]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.9981, 34.1266]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.708, 34.2206]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.9024, 32.8603]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0994, 33.9866]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.8433, 32.4975]
-        }
-    },
+        // Chick-fil-A locations in South Carolina
+        var chickFilALocations = [
+            { name: "Columbia", latlng: [34.0007, -81.0348], visited: false },
+            { name: "Charleston", latlng: [32.7765, -79.9311], visited: false },
+            { name: "Greenville", latlng: [34.8526, -82.3940], visited: false }
+            // Add more Chick-fil-A locations in South Carolina as needed
+        ];
 
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.994, 32.8702]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-80.2023, 32.6954]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.1686, 34.8109]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.458, 33.8059]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-81.0128, 34.7973]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.7542, 34.7285]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.7885, 32.8829]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.3404, 33.5026]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-82.3306, 34.4545]
-        }
-    },
-    {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-            "type": "Point",
-            "coordinates": [-79.9551, 32.7778]
-        }
-    }
+        // Add markers to the map
+        var markers = {};
+        chickFilALocations.forEach(function(location) {
+            var marker = L.marker(location.latlng).bindPopup(location.name);
+            markers[location.name] = marker;
+            marker.addTo(map);
+            marker.on('click', function(e) {
+                var locationName = e.target.getPopup().getContent();
+                var visited = confirm("Have you visited " + locationName + "?");
+                if (visited && !location.visited) {
+                    location.visited = true;
+                    counter++;
+                    visitedCounter.innerText = counter;
+                }
+            });
+        });
 
-    
+        // Function to search for Chick-fil-A locations in South Carolina
+        var searchInput = document.getElementById('searchInput');
+        var searchResults = document.getElementById('searchResults');
 
-    
-        ]
-    };
+        searchInput.addEventListener('input', function() {
+            var searchString = this.value.trim().toLowerCase();
+            searchResults.innerHTML = '';
+            if (searchString.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
 
-    L.geoJSON(geoJsonData).addTo(map);
-</script>
+            var results = chickFilALocations.filter(function(location) {
+                return location.name.toLowerCase().includes(searchString);
+            });
 
+            if (results.length > 0) {
+                results.forEach(function(result) {
+                    var listItem = document.createElement('div');
+                    listItem.classList.add('search-results-item');
+                    listItem.innerHTML = '<input type="checkbox">' + result.name;
+                    var checkbox = listItem.querySelector('input[type="checkbox"]');
+                    checkbox.checked = result.visited;
+                    checkbox.addEventListener('change', function() {
+                        if (this.checked && !result.visited) {
+                            result.visited = true;
+                            counter++;
+                        } else if (!this.checked && result.visited) {
+                            result.visited = false;
+                            counter--;
+                        }
+                        visitedCounter.innerText = counter;
+                    });
+                    searchResults.appendChild(listItem);
+                });
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.style.display = 'none';
+            }
+        });
+
+        // Add zoom control to bottom right corner
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+    </script>
 </body>
 </html>
